@@ -75,6 +75,7 @@ public:
 private:
     juce::dsp::NoiseGate<float> noiseGate;
     juce::dsp::Convolution fir;
+    juce::dsp::Compressor<float> noiseLimiter;
     juce::dsp::ProcessSpec spec;
 
     float* impbuffers[1];
@@ -86,6 +87,7 @@ private:
 
     float noiseFloorGainSliderValue = 5.0f;
     float noiseCancellationWetDryValue = 1.0f;
+    float noiseCancellationLimiterValue = 0.0f;
 
     float noiseFloorAttackSliderValue = 2.0f;
     float noiseFloorReleaseSliderValue = 25.0f;

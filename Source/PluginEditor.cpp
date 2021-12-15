@@ -109,12 +109,17 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
     noiseCancellationWetDrySlider.setValue(1.0);
     noiseCancellationWetDrySlider.setRange(0.0,1.0);
     addAndMakeVisible (noiseCancellationAmountSlider);
+    noiseCancellationAmountSlider.setValue(audioProcessor.noiseCancellationLimiterValue);
+    noiseCancellationAmountSlider.setRange(-100.0,100.0);
     noiseCancellationAmountSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
+    noiseCancellationAmountSlider.setName("noiseCancellationAmountSlider");
+
+    noiseCancellationAmountSlider.addListener(this);
     noiseCancellationWetDrySlider.addListener(this);
 
 
     addAndMakeVisible (noiseCancellationAmountLabel);
-    noiseCancellationAmountLabel.setText("Amount:",juce::NotificationType::dontSendNotification);
+    noiseCancellationAmountLabel.setText("Noise Cancellation Gain:",juce::NotificationType::dontSendNotification);
     addAndMakeVisible (noiseCancellationWetDryLabel);
     noiseCancellationWetDryLabel.setText("Wet/Dry:",juce::NotificationType::dontSendNotification);
 
@@ -178,7 +183,7 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
 
         setSize (800, 600);
 
-        #ifdef REMOVE_SPLASH // Note: You can't redistribute binaries, if JUCE does not a paid license 
+        #ifdef REMOVE_SPLASH // Note: You can't redistribute binaries, if JUCE does not a paid license
             this->removeChildComponent(this->getNumChildComponents() - 1);
         #endif
 
@@ -205,6 +210,9 @@ void AMPAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
         audioProcessor.noiseGate.setRelease(noiseFloorReleaseSlider.getValue());
     } else if (name == "noiseCancellationWetDrySlider") {
         audioProcessor.noiseCancellationWetDryValue = noiseCancellationWetDrySlider.getValue();
+    } else if (name == "noiseCancellationAmountSlider") {
+        audioProcessor.noiseCancellationLimiterValue = noiseCancellationAmountSlider.getValue();
+        audioProcessor.noiseLimiter.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getPeak()) + audioProcessor.noiseCancellationLimiterValue);
     }
 }
 

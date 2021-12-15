@@ -41,7 +41,9 @@ AMPAudioProcessor::AMPAudioProcessor()
         liveAudioScroller.reset (new LiveSpectrumAudioAnalyzer());
         //audioDeviceManager.addAudioCallback (liveAudioScroller.get());
         noiseGate.setRatio(3);
-
+        noiseLimiter.setRelease(5);
+        noiseLimiter.setAttack(5);
+        noiseLimiter.setRatio(std::numeric_limits<float>::max());
 
 #if 0
 
@@ -129,6 +131,7 @@ void AMPAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
     spec.numChannels = 1;
     spec.maximumBlockSize = samplesPerBlock;
     noiseGate.prepare(spec);
+    noiseLimiter.prepare(spec);
 }
 
 void AMPAudioProcessor::releaseResources()
@@ -178,21 +181,6 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    #if 0
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
-    }
-    #endif
-
     LiveSpectrumAudioAnalyzer* lv = liveAudioScroller.get();
 
     const float* buffers[] = {buffer.getReadPointer(0)};
@@ -200,6 +188,7 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
 
     if(lv->isReady() && !hasNoisefilter) {
         noiseGate.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getAvg()) + noiseFloorGainSliderValue);
+        noiseLimiter.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getPeak()) + noiseCancellationLimiterValue);
         impbuffers[0] = lv->getFIR();
         impulseBuffer = juce::AudioBuffer<float>(impbuffers,1,1024);
         fir.loadImpulseResponse(std::move(impulseBuffer), spec.sampleRate, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, juce::dsp::Convolution::Normalise::no );
@@ -214,6 +203,9 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     juce::dsp::AudioBlock<float> blockN (*noiseF);
     juce::dsp::ProcessContextNonReplacing<float> contextD( block, blockN );
 
+    juce::dsp::ProcessContextReplacing<float> contextN ( blockN );
+
+
     if (enableNoiseGate)
         noiseGate.process(context);
 
@@ -221,12 +213,15 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
 
     if ( enableNoiseCancellation && hasNoisefilter) {
         fir.process(contextD);
+        noiseLimiter.process(contextN);
+
         const float* rp = noiseF->getReadPointer(0);
         double coeff = noiseCancellationWetDryValue;
         for(int i=0;i<(buffer.getNumSamples());i++) {
                 wp[i] -= coeff*rp[i];
         }
     }
+
     int channelFactor = enableStereoEnhancement ? -1 : 1;
     for(int i=1;i<buffer.getNumChannels();i++) {
         float* cp = buffer.getWritePointer(i);
@@ -235,15 +230,6 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
             cp[i] = channelFactor*wp[i];
         }
     }
-
-#if 0
-    for (int channel = 1; channel < totalNumOutputChannels; ++channel)
-    {
-        float* channelData = buffer.getWritePointer (channel);
-
-        memcpy(channelData,buffers[0],buffer.getNumSamples()*sizeof(float));
-    }
-#endif
 
 }
 

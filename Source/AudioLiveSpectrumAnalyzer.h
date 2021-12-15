@@ -59,6 +59,11 @@ public:
         return avg;
     }
 
+
+    float getPeak() {
+        return peak;
+    }
+
     void paint (juce::Graphics& g)
     {
         g.fillAll (juce::Colour(0x33,0x00,0x20));
@@ -142,6 +147,8 @@ public:
 
         std::sort(a1.begin(),a1.end());
         avg = a1[512];
+        peak = a1[1023];
+
 
         //for(int i=0;i<1024;i++)
         //    b1[i] = (b1[i] > (avg/2)) ? 4*b1[i] : 0.00001;
@@ -213,6 +220,7 @@ void maunalAudioFeed (const float** inputChannelData, int numInputChannels,
     void resetAccCounter() {
         accsamples = 0;
         avg = 0.0f;
+        peak = 0.0f;
         ready = false;
     }
 
@@ -279,6 +287,8 @@ private:
     juce::dsp::FFT fft;
     unsigned cursor = 0;
     float avg = 0.0f;
+    float peak = 0.0f;
+
     juce::FileChooser fileChooser;
     bool ready = false;
     std::function<void()> presetChangedCallback = [] {};

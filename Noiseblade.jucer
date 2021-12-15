@@ -4,7 +4,8 @@
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
               pluginFormats="buildStandalone,buildVST" pluginManufacturer="Trollaattori"
               bundleIdentifier="fi.Trollaattori.Noiseblade" companyName="Trollaattori"
-              companyCopyright="Copyright trololololo">
+              companyCopyright="Copyright trololololo" pluginRTASCategory="128"
+              pluginAAXCategory="128">
   <MAINGROUP id="Bm5KUu" name="Noiseblade">
     <GROUP id="{D5BEED36-C863-54FC-7A28-D6007AAE42F4}" name="Source">
       <FILE id="kcNot9" name="PluginProcessor.cpp" compile="1" resource="0"
