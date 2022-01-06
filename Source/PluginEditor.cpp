@@ -24,6 +24,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+#include "AMPLookNFeel.h"
 //==============================================================================
 AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
@@ -36,24 +37,7 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
     audioProcessor.noiseGate.setRelease(audioProcessor.noiseFloorReleaseSliderValue);
     audioProcessor.noiseGate.setRatio(3);
 
-
-
-            getLookAndFeel().setColour (juce::ResizableWindow::backgroundColourId, juce::Colour(0x11,0x00,0x05));
-            getLookAndFeel().setColour (juce::TextButton::buttonColourId , juce::Colour(0x33,0x00,0x11));
-            getLookAndFeel().setColour (juce::TextButton::buttonOnColourId , juce::Colour(0xff,0x99,0xaa));
-            getLookAndFeel().setColour (juce::TextButton::textColourOffId , juce::Colour(0xff,0x77,0xaa));
-            getLookAndFeel().setColour (juce::TextButton::textColourOnId , juce::Colours::black);
-            getLookAndFeel().setColour (juce::Label::textColourId, juce::Colour(0xff,0x99,0xaa));
-
-            getLookAndFeel().setColour (juce::Slider::thumbColourId, juce::Colour(0xee,0x30,0x88));
-
-            getLookAndFeel().setColour (juce::Slider::rotarySliderFillColourId, juce::Colour(0x77,0x33,0x44));
-            getLookAndFeel().setColour (juce::Slider::rotarySliderOutlineColourId, juce::Colour(0x88,0x44,0x55));
-
-            getLookAndFeel().setColour (juce::GroupComponent::outlineColourId, juce::Colour(0xff,0x99,0xaa));
-            getLookAndFeel().setColour (juce::GroupComponent::textColourId, juce::Colour(0xff,0x99,0xaa));
-
-
+    setLookAndFeel(new AmpLookAndFeel);
 
     addAndMakeVisible (audioProcessor.liveAudioScroller.get());
     addAndMakeVisible (noiseGateGroup);
