@@ -44,18 +44,52 @@ AMPAudioProcessor::AMPAudioProcessor()
         noiseLimiter.setRelease(5);
         noiseLimiter.setAttack(5);
         noiseLimiter.setRatio(std::numeric_limits<float>::max());
+        addParameter(noiseFloorGainSliderValue = new juce::AudioParameterFloat( "floor_gain_slider_value",
+                                                                               "Floor Gain Slider Value",
+                                                                               -10.0f,
+                                                                               10.0f,
+                                                                               5.0f
+                                                                               ));
+        addParameter(noiseCancellationWetDryValue = new juce::AudioParameterFloat( "noise_cancellation_wetdry_value",
+                                                                               "Noise Cancellation Wet/Dry Value",
+                                                                               0.0f,
+                                                                               1.0f,
+                                                                               1.0f
+                                                                               ));
 
-#if 0
+        addParameter(noiseCancellationLimiterValue = new juce::AudioParameterFloat( "noise_cancellation_limiter_value",
+                                                                               "Noise Cancellation Limiter Gain",
+                                                                               -10.0f,
+                                                                               10.0f,
+                                                                               0.0f
+                                                                               ));
 
-        juce::RuntimePermissions::request (juce::RuntimePermissions::recordAudio,
-                                           [&] (bool granted) {
-                                            setAudioChannels (granted ? 1 : 0, 1);
-                                            audioDeviceManager.initialise (granted ? 1 : 0, 1, nullptr, true, {}, nullptr);
-                                           });
+        addParameter(noiseFloorAttackSliderValue = new juce::AudioParameterFloat( "noise_floor_attack_slider_value",
+                                                                                   "Noise Floor Attack Slider Value",
+                                                                                   0.0f,
+                                                                                   100.0f,
+                                                                                   2.0f
+                                                                                   ));
 
+        addParameter(noiseFloorReleaseSliderValue = new juce::AudioParameterFloat( "noise_floor_release_slider_value",
+                                                                                   "Noise Floor Release Slider Value",
+                                                                                   0.0f,
+                                                                                   100.0f,
+                                                                                   25.0f
+                                                                                   ));
 
-        audioDeviceManager.addAudioCallback (liveAudioScroller.get());
-#endif
+       addParameter(enableNoiseGate = new juce::AudioParameterBool( "enable_noise_gate",
+                                                                    "Enable Noise Gate",
+                                                                    true));
+
+       addParameter(enableNoiseCancellation = new juce::AudioParameterBool( "enable_noise_cancellation",
+                                                                    "Enable Noise Cancellation",
+                                                                    true));
+
+       addParameter(enableStereoEnhancement = new juce::AudioParameterBool( "enable_stereo_enhancement",
+                                                                    "Enable Stereo Enhancement",
+                                                                    false));
+
 }
 
 AMPAudioProcessor::~AMPAudioProcessor()
@@ -187,8 +221,8 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     lv->maunalAudioFeed(buffers,1,buffer.getNumSamples());
 
     if(lv->isReady() && !hasNoisefilter) {
-        noiseGate.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getAvg()) + noiseFloorGainSliderValue);
-        noiseLimiter.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getPeak()) + noiseCancellationLimiterValue);
+        noiseGate.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getAvg()) + *noiseFloorGainSliderValue);
+        noiseLimiter.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getPeak()) + *noiseCancellationLimiterValue);
         impbuffers[0] = lv->getFIR();
         impulseBuffer = juce::AudioBuffer<float>(impbuffers,1,1024);
         fir.loadImpulseResponse(std::move(impulseBuffer), spec.sampleRate, juce::dsp::Convolution::Stereo::no, juce::dsp::Convolution::Trim::no, juce::dsp::Convolution::Normalise::no );
@@ -206,23 +240,23 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
     juce::dsp::ProcessContextReplacing<float> contextN ( blockN );
 
 
-    if (enableNoiseGate)
+    if (*enableNoiseGate)
         noiseGate.process(context);
 
     float* wp = buffer.getWritePointer(0);
 
-    if ( enableNoiseCancellation && hasNoisefilter) {
+    if ( *enableNoiseCancellation && hasNoisefilter) {
         fir.process(contextD);
         noiseLimiter.process(contextN);
 
         const float* rp = noiseF->getReadPointer(0);
-        double coeff = noiseCancellationWetDryValue;
+        double coeff = *noiseCancellationWetDryValue;
         for(int i=0;i<(buffer.getNumSamples());i++) {
                 wp[i] -= coeff*rp[i];
         }
     }
 
-    int channelFactor = enableStereoEnhancement ? -1 : 1;
+    int channelFactor = *enableStereoEnhancement ? -1 : 1;
     for(int i=1;i<buffer.getNumChannels();i++) {
         float* cp = buffer.getWritePointer(i);
 
@@ -247,15 +281,46 @@ juce::AudioProcessorEditor* AMPAudioProcessor::createEditor()
 //==============================================================================
 void AMPAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+        std::unique_ptr<juce::XmlElement> xml (new juce::XmlElement ("Noiseblade"));
+
+        xml->setAttribute ("noiseFloorGainSliderValue", (double) *noiseFloorGainSliderValue);
+        xml->setAttribute ("noiseCancellationWetDryValue", (double) *noiseCancellationWetDryValue);
+        xml->setAttribute ("noiseCancellationLimiterValue", (double) *noiseCancellationLimiterValue);
+
+        xml->setAttribute ("noiseFloorAttackSliderValue", (double) *noiseFloorAttackSliderValue);
+        xml->setAttribute ("noiseFloorReleaseSliderValue", (double) *noiseFloorReleaseSliderValue);
+
+        xml->setAttribute ("enableNoiseGate", *enableNoiseGate);
+        xml->setAttribute ("enableNoiseCancellation", *enableNoiseCancellation);
+        xml->setAttribute ("enableStereoEnhancement", *enableStereoEnhancement);
+
+        xml->setAttribute ("impulseFilterPresetPath", liveAudioScroller.get()->getPresetPath());
+
+
+
+        copyXmlToBinary (*xml, destData);
 }
 
 void AMPAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+        std::unique_ptr<juce::XmlElement> xmlState (getXmlFromBinary (data, sizeInBytes));
+
+        if (xmlState.get() != nullptr)
+            if (xmlState->hasTagName ("Noiseblade")) {
+                *noiseFloorGainSliderValue = (float) xmlState->getDoubleAttribute ("noiseFloorGainSliderValue", 5.0);
+                *noiseCancellationWetDryValue = (float) xmlState->getDoubleAttribute ("noiseCancellationWetDryValue", 1.0);
+                *noiseCancellationLimiterValue = (float) xmlState->getDoubleAttribute ("noiseCancellationLimiterValue", 0.0);
+
+                *noiseFloorAttackSliderValue = (float) xmlState->getDoubleAttribute ("noiseFloorAttackSliderValue", 2.0);
+                *noiseFloorReleaseSliderValue = (float) xmlState->getDoubleAttribute ("noiseFloorReleaseSliderValue", 25.0);
+
+                *enableNoiseGate =  xmlState->getBoolAttribute ("enableNoiseGate", true);
+                *enableNoiseCancellation =  xmlState->getBoolAttribute ("enableNoiseCancellation", true);
+                *enableStereoEnhancement =  xmlState->getBoolAttribute ("enableStereoEnhancement", false);
+
+                liveAudioScroller.get()->setFromPresetPath(xmlState->getStringAttribute ("impulseFilterPresetPath", ""));
+
+            }
 }
 
 //==============================================================================

@@ -33,8 +33,8 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
     // editor's size to whatever you need it to be.
     setOpaque (true);
 
-    audioProcessor.noiseGate.setAttack(audioProcessor.noiseFloorAttackSliderValue);
-    audioProcessor.noiseGate.setRelease(audioProcessor.noiseFloorReleaseSliderValue);
+    audioProcessor.noiseGate.setAttack(*audioProcessor.noiseFloorAttackSliderValue);
+    audioProcessor.noiseGate.setRelease(*audioProcessor.noiseFloorReleaseSliderValue);
     audioProcessor.noiseGate.setRatio(3);
 
     setLookAndFeel(new AmpLookAndFeel);
@@ -46,13 +46,13 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
 
     noiseFloorGainSlider.setRange(-10,10);
     addAndMakeVisible (noiseFloorGainSlider);
-    noiseFloorGainSlider.setValue(audioProcessor.noiseFloorGainSliderValue);
+    noiseFloorGainSlider.setValue(*audioProcessor.noiseFloorGainSliderValue);
     noiseFloorGainSlider.addListener(this);
     noiseFloorGainSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     noiseFloorGainSlider.setName("noiseFloorGainSlider");
     addAndMakeVisible (noiseFloorAttackSlider);
     noiseFloorAttackSlider.setName("noiseFloorAttackSlider");
-    noiseFloorAttackSlider.setValue(audioProcessor.noiseFloorAttackSliderValue);
+    noiseFloorAttackSlider.setValue(*audioProcessor.noiseFloorAttackSliderValue);
     noiseFloorAttackSlider.setRange(1.0,20.0);
     noiseFloorAttackSlider.addListener(this);
     noiseFloorAttackSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
@@ -60,12 +60,12 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
     noiseFloorReleaseSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     noiseFloorReleaseSlider.setName("noiseFloorReleaseSlider");
     noiseFloorReleaseSlider.setRange(1.0,100.0);
-    noiseFloorReleaseSlider.setValue(audioProcessor.noiseFloorReleaseSliderValue);
+    noiseFloorReleaseSlider.setValue(*audioProcessor.noiseFloorReleaseSliderValue);
     noiseFloorReleaseSlider.addListener(this);
 
-    noiseGateButton.getToggleStateValue().setValue(audioProcessor.enableNoiseGate);
+    noiseGateButton.getToggleStateValue().setValue(audioProcessor.enableNoiseGate->get());
     noiseGateButton.addListener(this);
-    noiseCancellationButton.getToggleStateValue().setValue(audioProcessor.enableNoiseCancellation);
+    noiseCancellationButton.getToggleStateValue().setValue(audioProcessor.enableNoiseCancellation->get());
     noiseCancellationButton.addListener(this);
 
     noiseGateButton.setClickingTogglesState(true);
@@ -93,7 +93,7 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
     noiseCancellationWetDrySlider.setValue(1.0);
     noiseCancellationWetDrySlider.setRange(0.0,1.0);
     addAndMakeVisible (noiseCancellationAmountSlider);
-    noiseCancellationAmountSlider.setValue(audioProcessor.noiseCancellationLimiterValue);
+    noiseCancellationAmountSlider.setValue(*audioProcessor.noiseCancellationLimiterValue);
     noiseCancellationAmountSlider.setRange(-100.0,100.0);
     noiseCancellationAmountSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     noiseCancellationAmountSlider.setName("noiseCancellationAmountSlider");
@@ -143,7 +143,7 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
     addAndMakeVisible(stereoEnhancementButton);
     stereoEnhancementButton.setButtonText("Stereo Enhancement");
     stereoEnhancementButton.setName("stereoEnhancementButton");
-    stereoEnhancementButton.getToggleStateValue().setValue(audioProcessor.enableStereoEnhancement);
+    stereoEnhancementButton.getToggleStateValue().setValue(audioProcessor.enableStereoEnhancement->get());
     stereoEnhancementButton.setClickingTogglesState(true);
     stereoEnhancementButton.addListener(this);
 
@@ -184,19 +184,19 @@ void AMPAudioProcessorEditor::sliderValueChanged(juce::Slider* slider) {
     juce::String name = slider->getName();
 
     if (name == "noiseFloorGainSlider") {
-        audioProcessor.noiseFloorGainSliderValue = noiseFloorGainSlider.getValue();
+        *audioProcessor.noiseFloorGainSliderValue = noiseFloorGainSlider.getValue();
         audioProcessor.noiseGate.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getAvg()) + noiseFloorGainSlider.getValue());
     } else if (name == "noiseFloorAttackSlider") {
-        audioProcessor.noiseFloorAttackSliderValue = noiseFloorAttackSlider.getValue();
+        *audioProcessor.noiseFloorAttackSliderValue = noiseFloorAttackSlider.getValue();
         audioProcessor.noiseGate.setAttack(noiseFloorAttackSlider.getValue());
     } else if (name == "noiseFloorReleaseSlider") {
-        audioProcessor.noiseFloorReleaseSliderValue = noiseFloorReleaseSlider.getValue();
+        *audioProcessor.noiseFloorReleaseSliderValue = noiseFloorReleaseSlider.getValue();
         audioProcessor.noiseGate.setRelease(noiseFloorReleaseSlider.getValue());
     } else if (name == "noiseCancellationWetDrySlider") {
-        audioProcessor.noiseCancellationWetDryValue = noiseCancellationWetDrySlider.getValue();
+        *audioProcessor.noiseCancellationWetDryValue = noiseCancellationWetDrySlider.getValue();
     } else if (name == "noiseCancellationAmountSlider") {
-        audioProcessor.noiseCancellationLimiterValue = noiseCancellationAmountSlider.getValue();
-        audioProcessor.noiseLimiter.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getPeak()) + audioProcessor.noiseCancellationLimiterValue);
+        *audioProcessor.noiseCancellationLimiterValue = noiseCancellationAmountSlider.getValue();
+        audioProcessor.noiseLimiter.setThreshold(juce::Decibels::gainToDecibels<float>(lv->getPeak()) + *audioProcessor.noiseCancellationLimiterValue);
     }
 }
 
@@ -205,11 +205,11 @@ void AMPAudioProcessorEditor::buttonStateChanged(juce::Button* button) {
     juce::String name = button->getName();
 
     if ( name == "noiseCancellationButton" ) {
-        audioProcessor.enableNoiseCancellation = noiseCancellationButton.getToggleState();
+        *audioProcessor.enableNoiseCancellation = noiseCancellationButton.getToggleState();
     } else if (name == "noiseGateButton") {
-        audioProcessor.enableNoiseGate = noiseGateButton.getToggleState();
+        *audioProcessor.enableNoiseGate = noiseGateButton.getToggleState();
     } else if (name == "stereoEnhancementButton") {
-        audioProcessor.enableStereoEnhancement = stereoEnhancementButton.getToggleState();
+        *audioProcessor.enableStereoEnhancement = stereoEnhancementButton.getToggleState();
     }
 }
 

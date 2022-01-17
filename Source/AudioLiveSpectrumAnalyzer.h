@@ -232,7 +232,8 @@ void showLoadDialog() {
 
                                 if(fc.getResult().getSize() == (sizeof(float) * 1024)) {
                                     ready = false;
-                                    juce::FileInputStream inputStream (fc.getResult());
+                                    auto result = fc.getResult();
+                                    juce::FileInputStream inputStream (result);
                                     for(int i=0;i<1024;i++)
                                         accbuffer[i] = inputStream.readFloat();
                                     setupImpulseResponse();
@@ -276,6 +277,28 @@ juce::String getPresetName() {
     return fileChooser.getResult().getFileNameWithoutExtension();
 }
 
+juce::String getPresetPath() {
+    if (!fileChooser.getResults().size())
+        return "";
+
+    return fileChooser.getResult().getFullPathName();
+}
+
+void setFromPresetPath(juce::String path) {
+    juce::File fp(path);
+
+    if(fp.getSize() == (sizeof(float) * 1024)) {
+        ready = false;
+        auto result = fp;
+        juce::FileInputStream inputStream (result);
+        for(int i=0;i<1024;i++)
+            accbuffer[i] = inputStream.readFloat();
+        setupImpulseResponse();
+        accsamples = 65; // XXX: set to the max to avoid calibrating
+        presetChangedCallback();
+}
+}
+
 private:
     juce::AudioBuffer<float> buffer;
     float fftbuffer[4096];
@@ -289,6 +312,7 @@ private:
     float avg = 0.0f;
     float peak = 0.0f;
 
+    std::string m_path;
     juce::FileChooser fileChooser;
     bool ready = false;
     std::function<void()> presetChangedCallback = [] {};

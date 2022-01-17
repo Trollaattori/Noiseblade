@@ -8,7 +8,7 @@ The purpose of the Noiseblade audio plugin is to remove unwanted noise from audi
 * The noise must have constant volume and frequency spikes, the program cannot remove background noise that is constantly changing (such as background tv), it is only meant to remove noise caused by electromagnetic interference or similar noise.
 
 # TODO
-* ⬜ Autosave/autoload previous settings & VST support 
+* ✅ ~~Autosave/autoload previous settings & VST support~~ 
 * ✅ ~~Limiter for noise cancellation~~
 
 # How to build

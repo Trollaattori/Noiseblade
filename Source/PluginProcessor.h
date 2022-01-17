@@ -85,16 +85,16 @@ private:
     bool hasNoisefilter = false;
 
 
-    float noiseFloorGainSliderValue = 5.0f;
-    float noiseCancellationWetDryValue = 1.0f;
-    float noiseCancellationLimiterValue = 0.0f;
+    juce::AudioParameterFloat* noiseFloorGainSliderValue; //= 5.0f;
+    juce::AudioParameterFloat* noiseCancellationWetDryValue; // = 1.0f;
+    juce::AudioParameterFloat* noiseCancellationLimiterValue; //= 0.0f;
 
-    float noiseFloorAttackSliderValue = 2.0f;
-    float noiseFloorReleaseSliderValue = 25.0f;
+    juce::AudioParameterFloat* noiseFloorAttackSliderValue; //= 2.0f;
+    juce::AudioParameterFloat* noiseFloorReleaseSliderValue; //= 25.0f;
 
-    bool enableNoiseGate = true;
-    bool enableNoiseCancellation = true;
-    bool enableStereoEnhancement = false;
+    juce::AudioParameterBool* enableNoiseGate; //= true;
+    juce::AudioParameterBool* enableNoiseCancellation; //= true;
+    juce::AudioParameterBool* enableStereoEnhancement; // = false;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AMPAudioProcessor)
