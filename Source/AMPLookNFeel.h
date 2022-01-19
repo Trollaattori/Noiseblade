@@ -87,13 +87,13 @@ virtual void drawButtonBackground (juce::Graphics& g,
     }
     else
     {
-        if(button.isEnabled()) {
-            g.setColour (baseColour.withMultipliedAlpha(0.7));
+        if(button.getToggleState()) {
+            g.setColour (baseColour.withMultipliedAlpha(0.5));
             g.fillRoundedRectangle (bounds.reduced(3.0), cornerSize);
-            g.setColour (baseColour.withMultipliedAlpha(0.4));
+            g.setColour (baseColour.withMultipliedAlpha(0.3));
             g.fillRoundedRectangle (bounds.reduced(2.0), cornerSize);
 
-            g.setColour (baseColour.withMultipliedAlpha(0.1));
+            g.setColour (baseColour.withMultipliedAlpha(0.05));
             g.fillRoundedRectangle (bounds, cornerSize);
         }
         g.setColour (baseColour);

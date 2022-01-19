@@ -153,21 +153,9 @@ AMPAudioProcessorEditor::AMPAudioProcessorEditor (AMPAudioProcessor& p)
         audioProcessor.hasNoisefilter = false;
         });
 
-
-#if 0
-        juce::RuntimePermissions::request (juce::RuntimePermissions::recordAudio,
-                                           [&] (bool granted) {
-                                            setAudioChannels (granted ? 2 : 0, 2);
-                                            audioDeviceManager.initialise (granted ? 2 : 0, 2, nullptr, true, {}, nullptr);
-                                           });
-
-
-        audioDeviceManager.addAudioCallback (liveAudioScroller.get());
-#endif
-
         setSize (800, 600);
 
-        #ifdef REMOVE_SPLASH // Note: You can't redistribute binaries, if JUCE does not a paid license
+        #ifdef REMOVE_SPLASH // Note: You can't redistribute binaries, if you don't have a paid JUCE license
             this->removeChildComponent(this->getNumChildComponents() - 1);
         #endif
 

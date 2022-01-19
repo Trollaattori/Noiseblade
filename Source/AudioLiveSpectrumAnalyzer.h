@@ -134,16 +134,17 @@ public:
 
     void setupImpulseResponse() {
         std::array<float, 1024> a1;
+        std::array<float, 1024> b1;
 
         for (int i=0;i<1024;i++) {
             a1[i] = accbuffer[i];
         }
 
         for(int i=0;i<1024;i++)
-        filterbuffer[i] = CLAMP(a1[i]*std::abs(2.0*a1[i] - a1[CLAMP(i-1,0,1023)] - a1[CLAMP(i+1,0,1023)]),0.0,1.0) > 0.002 ? 1.0 : 0.001;
+        b1[i] = CLAMP(a1[i]*std::abs(2.0*a1[i] - a1[CLAMP(i-1,0,1023)] - a1[CLAMP(i+1,0,1023)]),0.0,1.0) > 0.002 ? 1.0 : 0.001;
 
         for(int i=0;i<1024;i++)
-        filterbuffer[i] = CLAMP((filterbuffer[i] + 0.5*filterbuffer[CLAMP(i-1,0,1023)] + 0.5*filterbuffer[CLAMP(i+1,0,1023)]),0.0,1.0);
+        filterbuffer[i] = CLAMP((b1[i] + 0.5*b1[CLAMP(i-1,0,1023)] + 0.5*b1[CLAMP(i+1,0,1023)]),0.0,1.0);
 
         std::sort(a1.begin(),a1.end());
         avg = a1[512];
