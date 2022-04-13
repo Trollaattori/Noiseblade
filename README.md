@@ -7,10 +7,6 @@ The purpose of the Noiseblade audio plugin is to remove unwanted noise from audi
 * The program requires a noise removal profile, that the program automatically creates during startup. The profile can be saved and loaded as well. 
 * The noise must have constant volume and frequency spikes, the program cannot remove background noise that is constantly changing (such as background tv), it is only meant to remove noise caused by electromagnetic interference or similar noise.
 
-# TODO
-* ✅ ~~Autosave/autoload previous settings & VST support~~ 
-* ✅ ~~Limiter for noise cancellation~~
-
 # How to build
 
 Simply download [JUCE](https://github.com/juce-framework/JUCE) and open the Noiseblade.jucer with Projucer-program in the JUCE directory. Select your favorite IDE and platform and compile the plugin.
