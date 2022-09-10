@@ -265,6 +265,8 @@ void AMPAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::Mi
         }
     }
 
+    delete noiseF; // release the processor buffer so we don't leak memory
+
 }
 
 //==============================================================================
